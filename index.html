@@ -375,36 +375,43 @@ const ctx = canvas.getContext('2d');
 
 // ─────────────── TEAMS DATA ───────────────
 const TEAMS = [
-  {name:'Man City',    abbr:'MCI', emoji:'🔵', p:'#6CABDD', s:'#1C2C5B'},
-  {name:'Man United',  abbr:'MUN', emoji:'🔴', p:'#DA291C', s:'#FBE122'},
-  {name:'Liverpool',   abbr:'LIV', emoji:'🔴', p:'#C8102E', s:'#00B2A9'},
-  {name:'Chelsea',     abbr:'CHE', emoji:'🔵', p:'#034694', s:'#DBA111'},
-  {name:'Arsenal',     abbr:'ARS', emoji:'🔴', p:'#EF0107', s:'#FFFFFF'},
-  {name:'Tottenham',   abbr:'TOT', emoji:'⚪', p:'#132257', s:'#FFFFFF'},
-  {name:'Newcastle',   abbr:'NEW', emoji:'⚫', p:'#241F20', s:'#FFFFFF'},
-  {name:'Aston Villa', abbr:'AVL', emoji:'🟣', p:'#95BFE5', s:'#670E36'},
-  {name:'Real Madrid', abbr:'RMA', emoji:'⚪', p:'#FEBE10', s:'#FFFFFF'},
-  {name:'Barcelona',   abbr:'BAR', emoji:'🔵', p:'#004D98', s:'#A50044'},
-  {name:'Atletico',    abbr:'ATM', emoji:'🔴', p:'#CC0000', s:'#FFFFFF'},
-  {name:'Bayern',      abbr:'BAY', emoji:'🔴', p:'#DC052D', s:'#FFFFFF'},
-  {name:'Dortmund',    abbr:'BVB', emoji:'🟡', p:'#FDE100', s:'#000000'},
-  {name:'PSG',         abbr:'PSG', emoji:'🔵', p:'#004170', s:'#DA291C'},
-  {name:'Marseille',   abbr:'OM',  emoji:'⚪', p:'#009EDA', s:'#FFFFFF'},
-  {name:'Juventus',    abbr:'JUV', emoji:'⚫', p:'#000000', s:'#FFFFFF'},
-  {name:'AC Milan',    abbr:'MIL', emoji:'🔴', p:'#FB090B', s:'#000000'},
-  {name:'Inter Milan', abbr:'INT', emoji:'🔵', p:'#0068A8', s:'#000000'},
-  {name:'Ajax',        abbr:'AJX', emoji:'🔴', p:'#C8102E', s:'#FFFFFF'},
-  {name:'Porto',       abbr:'POR', emoji:'🔵', p:'#004F9E', s:'#FFFFFF'},
-  {name:'Brazil',      abbr:'BRA', emoji:'🇧🇷', p:'#FFDF00', s:'#009C3B'},
-  {name:'Argentina',   abbr:'ARG', emoji:'🇦🇷', p:'#74ACDF', s:'#FFFFFF'},
-  {name:'France',      abbr:'FRA', emoji:'🇫🇷', p:'#002395', s:'#ED2939'},
-  {name:'Germany',     abbr:'GER', emoji:'🇩🇪', p:'#FFFFFF', s:'#000000'},
-  {name:'Spain',       abbr:'ESP', emoji:'🇪🇸', p:'#AA151B', s:'#F1BF00'},
-  {name:'Italy',       abbr:'ITA', emoji:'🇮🇹', p:'#003399', s:'#FFFFFF'},
-  {name:'Portugal',    abbr:'PRT', emoji:'🇵🇹', p:'#006600', s:'#FF0000'},
-  {name:'England',     abbr:'ENG', emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', p:'#FFFFFF', s:'#CF081F'},
-  {name:'Netherlands', abbr:'NED', emoji:'🇳🇱', p:'#FF6600', s:'#FFFFFF'},
-  {name:'Japan',       abbr:'JPN', emoji:'🇯🇵', p:'#000080', s:'#FFFFFF'},
+  // ── Premier League ──
+  {name:'Man City',    abbr:'MCI', emoji:'🔵', p:'#6CABDD', s:'#1C2C5B'}, // sky blue / navy
+  {name:'Man United',  abbr:'MUN', emoji:'🔴', p:'#DA291C', s:'#FFFFFF'}, // red / white
+  {name:'Liverpool',   abbr:'LIV', emoji:'🔴', p:'#C8102E', s:'#FFFFFF'}, // red / white
+  {name:'Chelsea',     abbr:'CHE', emoji:'🔵', p:'#034694', s:'#FFFFFF'}, // royal blue / white
+  {name:'Arsenal',     abbr:'ARS', emoji:'🔴', p:'#EF0107', s:'#FFFFFF'}, // red / white
+  {name:'Tottenham',   abbr:'TOT', emoji:'⚪', p:'#FFFFFF', s:'#132257'}, // white / navy
+  {name:'Newcastle',   abbr:'NEW', emoji:'⚫', p:'#000000', s:'#FFFFFF'}, // black / white
+  {name:'Aston Villa', abbr:'AVL', emoji:'🟣', p:'#7A003A', s:'#95BFE5'}, // claret / sky blue
+  // ── La Liga ──
+  {name:'Real Madrid', abbr:'RMA', emoji:'⚪', p:'#FFFFFF', s:'#00529F'}, // white / royal blue
+  {name:'Barcelona',   abbr:'BAR', emoji:'🔵', p:'#004D98', s:'#A50044'}, // blaugrana blue / garnet
+  {name:'Atletico',    abbr:'ATM', emoji:'🔴', p:'#CE1126', s:'#FFFFFF'}, // red / white
+  // ── Bundesliga ──
+  {name:'Bayern',      abbr:'BAY', emoji:'🔴', p:'#DC052D', s:'#0066B2'}, // red / blue
+  {name:'Dortmund',    abbr:'BVB', emoji:'🟡', p:'#FDE100', s:'#000000'}, // yellow / black
+  // ── Ligue 1 ──
+  {name:'PSG',         abbr:'PSG', emoji:'🔵', p:'#001B5E', s:'#EF3340'}, // midnight navy / red
+  {name:'Marseille',   abbr:'OM',  emoji:'⚪', p:'#009EDA', s:'#FFFFFF'}, // sky blue / white
+  // ── Serie A ──
+  {name:'Juventus',    abbr:'JUV', emoji:'⚫', p:'#000000', s:'#FFFFFF'}, // black / white
+  {name:'AC Milan',    abbr:'MIL', emoji:'🔴', p:'#FB090B', s:'#000000'}, // red / black
+  {name:'Inter Milan', abbr:'INT', emoji:'🔵', p:'#0B1A8E', s:'#000000'}, // blue / black (nerazzurri)
+  // ── Other Clubs ──
+  {name:'Ajax',        abbr:'AJX', emoji:'🔴', p:'#C8102E', s:'#FFFFFF'}, // red / white
+  {name:'Porto',       abbr:'POR', emoji:'🔵', p:'#003DA5', s:'#FFFFFF'}, // blue / white
+  // ── National Teams ──
+  {name:'Brazil',      abbr:'BRA', emoji:'🇧🇷', p:'#FEDF00', s:'#009B3A'}, // yellow / green
+  {name:'Argentina',   abbr:'ARG', emoji:'🇦🇷', p:'#75AADB', s:'#FFFFFF'}, // albiceleste / white
+  {name:'France',      abbr:'FRA', emoji:'🇫🇷', p:'#002395', s:'#ED2939'}, // navy / red
+  {name:'Germany',     abbr:'GER', emoji:'🇩🇪', p:'#FFFFFF', s:'#000000'}, // white / black
+  {name:'Spain',       abbr:'ESP', emoji:'🇪🇸', p:'#AA151B', s:'#F1BF00'}, // red / gold
+  {name:'Italy',       abbr:'ITA', emoji:'🇮🇹', p:'#0066B3', s:'#FFFFFF'}, // azzurri / white
+  {name:'Portugal',    abbr:'PRT', emoji:'🇵🇹', p:'#C8102E', s:'#006600'}, // red / green
+  {name:'England',     abbr:'ENG', emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', p:'#FFFFFF', s:'#CF081F'}, // white / red
+  {name:'Netherlands', abbr:'NED', emoji:'🇳🇱', p:'#FF6600', s:'#FFFFFF'}, // orange / white
+  {name:'Japan',       abbr:'JPN', emoji:'🇯🇵', p:'#13448C', s:'#FFFFFF'}, // navy / white
 ];
 
 // ─────────────── CONSTANTS ───────────────
@@ -648,8 +655,10 @@ class Player{
     this.isActive=false;
     let dm=1;
     if(team===1){dm=currentDifficulty==='easy'?.65:currentDifficulty==='normal'?.85:1}
-    this.accel=0.85*dm; this.turnSpeed=0.4*dm;
-    this.maxSpeed=3.4*dm; this.sprintSpeed=5.2*dm;
+    // Goalies are slower and less agile than outfield players
+    const gkMod=this.isGoalie?0.58:1;
+    this.accel=0.85*dm*gkMod; this.turnSpeed=0.4*dm;
+    this.maxSpeed=3.4*dm*gkMod; this.sprintSpeed=5.2*dm*gkMod;
     this.stamina=100; this.isSprinting=false;
     this.actionCooldown=0; this.isAiming=false; this.aimPower=0;
     this.aimDir=this.angle; this.wasAiming=false;
@@ -885,10 +894,9 @@ class Player{
           const tFrames=ball.vel.x!==0?dx/ball.vel.x:999;
           if(tFrames>0&&tFrames<200){
             const rawPredictY=ball.pos.y+ball.vel.y*tFrames;
-            // Difficulty-scaled reaction noise
-            const noise=currentDifficulty==='easy'?90:currentDifficulty==='normal'?30:6;
+            // Difficulty-scaled reaction noise — much more generous now
+            const noise=currentDifficulty==='easy'?180:currentDifficulty==='normal'?90:45;
             targetY=rawPredictY+(Math.random()-0.5)*noise;
-            // Sprint hard to intercept shots
             if(Math.abs(targetY-this.pos.y)>20) this.isSprinting=true;
           }
         }else{
@@ -915,7 +923,7 @@ class Player{
           const d=new Vector(tp.x-this.pos.x,tp.y-this.pos.y);
           if(d.mag()>12){
             d.normalize();
-            const diveAccel=this.accel*(1.8+shotSpeed*0.06);
+            const diveAccel=this.accel*(1.2+shotSpeed*0.03); // reduced from 1.8+0.06
             this.vel.add(new Vector(d.x*diveAccel,d.y*diveAccel));
           }
           // Skip the generic movement block below
@@ -933,17 +941,86 @@ class Player{
       }
     }else{
       if(ball.possessor===this){
-        tp=new Vector(this.team===0?FIELD.x+FIELD.w:FIELD.x,WORLD_H/2);
-        const nd=Math.min(...players.filter(p=>p.team!==this.team).map(p=>Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y)));
-        if(nd<120&&Math.random()<0.15*timeScale){this.pass();return}
-        if(nd<300&&this.stamina>30){this.isSprinting=true;this.stamina-=0.6*timeScale}
-        if(Math.hypot(tp.x-this.pos.x,tp.y-this.pos.y)<600&&!this.isAiming&&Math.random()<0.04*timeScale){
-          this.isAiming=true;
-          const ey=currentDifficulty==='easy'?250:currentDifficulty==='normal'?120:50;
-          this.aimDir=Math.atan2((WORLD_H/2+(Math.random()*ey-ey/2))-this.pos.y,tp.x-this.pos.x);
+        const goalX=this.team===0?FIELD.x+FIELD.w:FIELD.x;
+        tp=new Vector(goalX,WORLD_H/2);
+
+        // Find nearest opponent and their distance
+        const opps=players.filter(p=>p.team!==this.team);
+        const nd=Math.min(...opps.map(p=>Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y)));
+
+        // How far are we from the opponent goal?
+        const distToGoal=Math.hypot(goalX-this.pos.x,WORLD_H/2-this.pos.y);
+
+        // Sprint when in open space driving forward
+        if(nd>220&&this.stamina>30){this.isSprinting=true;this.stamina-=0.6*timeScale}
+
+        // ── SHOOT DECISION ──
+        // Only shoot when close enough AND not already aiming
+        const shootRange=currentDifficulty==='easy'?450:currentDifficulty==='normal'?550:700;
+        if(distToGoal<shootRange&&!this.isAiming){
+          // Shoot chance scales up sharply the closer we are
+          const shootChance=(1-(distToGoal/shootRange))*0.055*timeScale;
+          if(Math.random()<shootChance){
+            this.isAiming=true;
+            const ey=currentDifficulty==='easy'?220:currentDifficulty==='normal'?100:40;
+            this.aimDir=Math.atan2((WORLD_H/2+(Math.random()*ey-ey/2))-this.pos.y,goalX-this.pos.x);
+          }
         }
-        if(this.isAiming){this.aimPower+=1.5*timeScale;this.vel.mult(0.6);if(this.aimPower>25)this.executeShot()}
-        else if(Math.random()<0.01*timeScale) this.pass();
+        if(this.isAiming){
+          this.aimPower+=1.5*timeScale; this.vel.mult(0.6);
+          if(this.aimPower>25) this.executeShot();
+          return;
+        }
+
+        // ── PASS DECISION ──
+        // Only consider passing when genuinely under pressure
+        const underPressure=nd<160;
+        // Path to goal is blocked by an opponent directly in front
+        const angleToGoal=Math.atan2(WORLD_H/2-this.pos.y,goalX-this.pos.x);
+        const pathBlocked=opps.some(p=>{
+          const dist=Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y);
+          const ang=Math.atan2(p.pos.y-this.pos.y,p.pos.x-this.pos.x);
+          const diff=Math.abs(lerpAngle(angleToGoal,ang,1)-angleToGoal);
+          return dist<280&&diff<0.55; // within ~31 degrees of goal path
+        });
+
+        if(underPressure||pathBlocked){
+          // Find a teammate who is genuinely more upfield or more open
+          const myDistToGoal=distToGoal;
+          let bestPass=null, bestScore=-Infinity;
+          for(let p of players){
+            if(p.team!==this.team||p===this) continue;
+            const tmDistToGoal=Math.hypot(goalX-p.pos.x,WORLD_H/2-p.pos.y);
+            const tmNearestOpp=Math.min(...opps.map(o=>Math.hypot(o.pos.x-p.pos.x,o.pos.y-p.pos.y)));
+            const passAngle=Math.atan2(p.pos.y-this.pos.y,p.pos.x-this.pos.x);
+            const angDiff=Math.abs(lerpAngle(this.angle,passAngle,1)-this.angle);
+            const passLane=!opps.some(o=>{
+              const od=Math.hypot(o.pos.x-this.pos.x,o.pos.y-this.pos.y);
+              const oa=Math.atan2(o.pos.y-this.pos.y,o.pos.x-this.pos.x);
+              return od<Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y)&&Math.abs(lerpAngle(passAngle,oa,1)-passAngle)<0.4;
+            });
+            // Score: prefer open teammates closer to goal, avoid blocked lanes
+            const score=(myDistToGoal-tmDistToGoal)*0.5+tmNearestOpp*0.4+(passLane?80:0)-angDiff*30;
+            if(score>bestScore&&angDiff<Math.PI*0.8){bestScore=score;bestPass=p;}
+          }
+          // Only actually pass if the teammate is meaningfully better positioned
+          const passThreshold=currentDifficulty==='easy'?20:currentDifficulty==='normal'?60:100;
+          if(bestPass&&bestScore>passThreshold){
+            // One-frame decision — no random roll, just commit
+            if(!this._passDecisionTimer) this._passDecisionTimer=0;
+            this._passDecisionTimer+=timeScale;
+            if(this._passDecisionTimer>8){ // small delay so it doesn't feel instant
+              this._passDecisionTimer=0;
+              this.angle=Math.atan2(bestPass.pos.y-this.pos.y,bestPass.pos.x-this.pos.x);
+              this.pass(); return;
+            }
+          }else{
+            this._passDecisionTimer=0;
+          }
+        }else{
+          this._passDecisionTimer=0;
+        }
+
       }else{
         const closestDist=Math.min(...players.filter(p=>p.team===this.team&&!p.isGoalie).map(p=>Math.hypot(p.pos.x-ball.pos.x,p.pos.y-ball.pos.y)));
         const distToBall=Math.hypot(ball.pos.x-this.pos.x,ball.pos.y-this.pos.y);
