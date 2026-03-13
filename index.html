@@ -523,12 +523,12 @@ const TUT_STEPS=[
    hint:'Hold CTRL for 2 seconds to feel the power!',
    check:()=>tutState.slowmoFrames>=120},
   {title:'ASSIST MODE (ON)',badge:'STEP 7 OF 8',
-   desc:'With <b>Assist Mode ON</b>, a <b>green circle</b> appears on the best nearby target — teammate or goal. It\'s a suggestion, not a snap. You still aim freely!',
-   hint:'Hold SPACE and aim — see the green hint circle appear!',
+   desc:'With <b>Assist Mode ON</b>, a <b>green circle</b> highlights the best target. When you release SPACE, the shot <b>perfectly snaps</b> to that target automatically!',
+   hint:'Hold SPACE, see the green target lock on, then release to fire!',
    check:()=>tutState.assistShown},
   {title:'ASSIST MODE (OFF)',badge:'STEP 8 OF 8',
-   desc:'With <b>Assist Mode OFF</b>, the green hint is hidden. Pure manual aim with no indicators — full control, full responsibility.',
-   hint:'Aim and shoot manually at the goal!',
+   desc:'With <b>Assist Mode OFF</b>, no snap — the ball goes exactly where your arrow points. Full manual control.',
+   hint:'Aim your arrow manually at the goal and shoot!',
    check:()=>tutState.shotFired},
 ];
 
@@ -882,8 +882,24 @@ class Player{
   }
 
   executeShot(){
-    // Always fire exactly where the player aimed — no snap override
-    const finalDir=this.aimDir;
+    const curAssist=(tutState.active&&tutState.step===6)?true:(tutState.active&&tutState.step===7)?false:assistMode;
+    let finalDir=this.aimDir;
+
+    // Assist mode: perfectly snap to the suggested target on release
+    if(curAssist&&this.assistedTarget&&this.team===0){
+      if(this.assistedTarget==='goal'){
+        const gx=FIELD.x+FIELD.w;
+        const ytop=WORLD_H/2-GOAL.h/2+25, ybot=WORLD_H/2+GOAL.h/2-25;
+        const eg=players.find(p=>p.team===1&&p.isGoalie);
+        let ty=WORLD_H/2;
+        if(eg){ ty=Math.abs(eg.pos.y-ytop)>Math.abs(eg.pos.y-ybot)?ytop:ybot; }
+        finalDir=Math.atan2(ty-this.pos.y,gx-this.pos.x);
+        this.aimPower=Math.max(25,this.aimPower);
+      }else{
+        finalDir=Math.atan2(this.assistedTarget.pos.y-this.pos.y,this.assistedTarget.pos.x-this.pos.x);
+      }
+    }
+
     ball.possessor=null; this.wasAiming=false; this.assistedTarget=null;
     let pwr=Math.max(10,this.aimPower)*(this.isGoalie?1.4:1);
     ball.vel=new Vector(Math.cos(finalDir)*pwr,Math.sin(finalDir)*pwr);
