@@ -619,6 +619,8 @@ class Ball{
       if(gameState==='playing'){
         if(this.pos.x<FIELD.x&&inGY) triggerGoal(1);
         if(this.pos.x>FIELD.x+FIELD.w&&inGY) triggerGoal(0);
+      }else if(gameState==='tutorial'){
+        if(this.pos.x>FIELD.x+FIELD.w&&inGY){ tutState.scored=true; this.vel=new Vector(0,0); this.possessor=null; }
       }else if(gameState==='pk'&&!this.possessor) checkPKResult(inGY);
     }
   }
@@ -694,11 +696,10 @@ class Player{
     }
 
     // Tutorial dummy movement
-    if(this.isTutDummy){
-      this.runAI(); return;
-    }
+    if(this.isTutDummy){ this.runAI(); return; }
 
-    if(gameState==='kickoff'||(gameState==='pk'&&this.team===pkState.turn)||(tutState.active&&this.team===0)){
+    // Kickoff / PK special branch — NOT tutorial (tutorial uses normal playing path)
+    if(gameState==='kickoff'||(gameState==='pk'&&this.team===pkState.turn)){
       if(ball.possessor===this){
         this.isActive=true;
         if(keys[binds.Shoot_Slide]){
@@ -710,20 +711,26 @@ class Player{
           if(keys[binds.Right]||keys['ArrowRight']) this.aimTargetX+=15*timeScale;
           this.aimDir=Math.atan2(this.aimTargetY-this.pos.y,this.aimTargetX-this.pos.x);
           this.angle=this.aimDir;
-          if(assistMode&&tutState.active&&tutState.step===6) this.assistedTarget=this.getBestAssistTarget();
-          else if(assistMode&&!tutState.active) this.assistedTarget=this.getBestAssistTarget();
-          if(tutState.active&&tutState.step===6&&this.assistedTarget) tutState.assistShown=true;
+          if(assistMode) this.assistedTarget=this.getBestAssistTarget();
         }else if(this.isAiming){
-          if(tutState.active) tutState.shotFired=true;
           this.executeShot();
           if(gameState==='kickoff') resumeKickoffPlayer();
         }
-      }else{this.vel=new Vector(0,0)}
-      if(!gameState.includes('kickoff')&&!gameState.includes('pk')&&tutState.active) this.handlePlayerInput();
+      }else{ this.vel=new Vector(0,0); }
+      if(!this.isSliding){
+        this.vel.mult(1-((1-0.88)*timeScale));
+        let ms=this.isSprinting?this.sprintSpeed:this.maxSpeed;
+        if(this.vel.mag()>ms){this.vel.normalize();this.vel.mult(ms)}
+      }
+      this.pos.x+=this.vel.x*timeScale; this.pos.y+=this.vel.y*timeScale;
+      this.clampToField();
       return;
     }
 
-    if(this.team===0&&this.isActive&&gameState==='playing'&&!this.isSliding){
+    // Normal playing + tutorial path
+    const isTutPlayer=(tutState.active&&this.team===0);
+    if(isTutPlayer) this.isActive=true;
+    if((this.team===0&&this.isActive&&(gameState==='playing'||isTutPlayer)&&!this.isSliding)){
       this.handlePlayerInput();
     }else if(!this.isActive||this.team===1) this.runAI();
 
@@ -738,7 +745,7 @@ class Player{
 
     this.clampToField();
 
-    if((gameState==='playing'||tutState.active)&&!this.isSliding&&this.actionCooldown<=0){
+    if((gameState==='playing'||gameState==='tutorial')&&!this.isSliding&&this.actionCooldown<=0){
       if(Math.hypot(this.pos.x-ball.pos.x,this.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+10&&ball.possessor!==this){
         ball.possessor=this; this.aimDir=this.angle;
       }
@@ -960,7 +967,7 @@ class Player{
       this.angle=lerpAngle(this.angle,Math.atan2(this.vel.y,this.vel.x),this.turnSpeed*timeScale);
     this.clampToField();
 
-    if((gameState==='playing'||tutState.active)&&!this.isSliding&&this.actionCooldown<=0&&Math.hypot(this.pos.x-ball.pos.x,this.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+10&&ball.possessor!==this)
+    if((gameState==='playing'||gameState==='tutorial')&&!this.isSliding&&this.actionCooldown<=0&&Math.hypot(this.pos.x-ball.pos.x,this.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+10&&ball.possessor!==this)
       {ball.possessor=this;this.aimDir=this.angle}
   }
 
@@ -1509,11 +1516,11 @@ function drawTutorialStep(){
 
 // ─────────────── MAIN LOOP ───────────────
 function handleTimeAndEnergy(){
-  if(keys[binds.SlowMo]&&energyMeter>0&&(gameState==='playing'||tutState.active)){
+  if(keys[binds.SlowMo]&&energyMeter>0&&(gameState==='playing'||gameState==='tutorial')){
     timeScale=0.25; energyMeter=Math.max(0,energyMeter-0.4);
   }else{
     timeScale=1.0;
-    if(gameState==='playing'||tutState.active) energyMeter=Math.min(100,energyMeter+0.15);
+    if(gameState==='playing'||gameState==='tutorial') energyMeter=Math.min(100,energyMeter+0.15);
   }
   document.getElementById('slowmo-fill').style.width=energyMeter+'%';
   if(clockRunning&&gameState==='playing'){
