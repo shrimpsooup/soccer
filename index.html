@@ -433,18 +433,24 @@ const TEAMS = [
 ];
 
 // ─────────────── CONSTANTS ───────────────
-const WORLD_W=2400, WORLD_H=1500;
-const FIELD={x:100,y:100,w:2200,h:1300};
-const GOAL={w:60,h:220};
+const WORLD_W=3400, WORLD_H=2200;
+const FIELD={x:120,y:120,w:3160,h:1960};
+const GOAL={w:80,h:340};
+// Penalty box: how far from each goal line the box extends, and its height
+const PBOX={depth:220,h:520}; // penalty box, centered on goal
 const FRICTION=0.96;
 const PLAYER_RADIUS=16, BALL_RADIUS=9;
 
+// 4-3-3 formation
 const FORMATION=[
-  {rx:0.05,ry:0.5,role:'GK',isGoalie:true},
-  {rx:0.25,ry:0.3,role:'DF'},{rx:0.25,ry:0.7,role:'DF'},
-  {rx:0.45,ry:0.5,role:'CM'},
-  {rx:0.65,ry:0.25,role:'LW'},{rx:0.65,ry:0.75,role:'RW'},
-  {rx:0.75,ry:0.5,role:'ST',isStriker:true}
+  {rx:0.04,ry:0.5, role:'GK',isGoalie:true},
+  // defenders
+  {rx:0.22,ry:0.18,role:'DF'},{rx:0.22,ry:0.40,role:'DF'},
+  {rx:0.22,ry:0.60,role:'DF'},{rx:0.22,ry:0.82,role:'DF'},
+  // midfielders
+  {rx:0.45,ry:0.25,role:'CM'},{rx:0.45,ry:0.5,role:'CM'},{rx:0.45,ry:0.75,role:'CM'},
+  // forwards
+  {rx:0.72,ry:0.2, role:'LW'},{rx:0.78,ry:0.5,role:'ST',isStriker:true},{rx:0.72,ry:0.8,role:'RW'},
 ];
 
 // ─────────────── STATE ───────────────
@@ -818,18 +824,30 @@ class Player{
   // Left/Right keys rotate aim angle; up/down optionally tweak Y offset.
   // This is clean: no drifting target position, just a direction vector.
   _updateAimInput(curAssist){
-    // Same rotation speed regardless of assist — analog, no snap
-    const aimRotSpeed = 0.038 * timeScale;
-    if(keys[binds.Left]||keys['ArrowLeft'])  this.aimOffsetAngle -= aimRotSpeed;
-    if(keys[binds.Right]||keys['ArrowRight']) this.aimOffsetAngle += aimRotSpeed;
-    if(keys[binds.Up]||keys['ArrowUp'])    this.aimOffsetAngle -= aimRotSpeed*0.5;
-    if(keys[binds.Down]||keys['ArrowDown']) this.aimOffsetAngle += aimRotSpeed*0.5;
-    // Clamp aim to ±100° from base so you can't shoot backwards
-    this.aimOffsetAngle = Math.max(-Math.PI*0.55, Math.min(Math.PI*0.55, this.aimOffsetAngle));
-    this.angle = this.aimDir;
-    // Assist mode: show a green suggestion circle, but never overrides shot direction
-    if(curAssist) this.assistedTarget = this.getBestAssistTarget();
-    else this.assistedTarget = null;
+    // Build a direction vector from held keys — exactly like movement input
+    let dx=0, dy=0;
+    if(keys[binds.Left] ||keys['ArrowLeft'])  dx-=1;
+    if(keys[binds.Right]||keys['ArrowRight']) dx+=1;
+    if(keys[binds.Up]   ||keys['ArrowUp'])    dy-=1;
+    if(keys[binds.Down] ||keys['ArrowDown'])  dy+=1;
+
+    if(dx!==0||dy!==0){
+      // Point aim directly at the held direction, smoothly lerped
+      const targetAngle=Math.atan2(dy,dx);
+      // Lerp the offset toward (targetAngle - aimBaseAngle), keeping it in [-π, π]
+      let targetOffset=targetAngle-this.aimBaseAngle;
+      while(targetOffset>Math.PI)  targetOffset-=Math.PI*2;
+      while(targetOffset<-Math.PI) targetOffset+=Math.PI*2;
+      // Clamp so you can't aim more than ~160° from base (no shooting backward)
+      targetOffset=Math.max(-Math.PI*0.88,Math.min(Math.PI*0.88,targetOffset));
+      const lerpRate=0.18*timeScale;
+      this.aimOffsetAngle+=(targetOffset-this.aimOffsetAngle)*lerpRate;
+    }
+    // No keys = aim stays wherever it is (no drift back to center)
+
+    this.angle=this.aimDir;
+    if(curAssist) this.assistedTarget=this.getBestAssistTarget();
+    else this.assistedTarget=null;
     if(tutState.active&&tutState.step===6&&this.assistedTarget) tutState.assistShown=true;
   }
 
@@ -936,8 +954,21 @@ class Player{
         const homeX=this.team===0?FIELD.x+22:FIELD.x+FIELD.w-22;
         const towardGoal=this.team===0?(ball.vel.x<-1.5):(ball.vel.x>1.5);
         const shotSpeed=ball.vel.mag();
+
+        // Check if ball is loose inside our penalty box — go get it immediately
+        const pby1=WORLD_H/2-PBOX.h/2, pby2=WORLD_H/2+PBOX.h/2;
+        const pbx1=this.team===0?FIELD.x:FIELD.x+FIELD.w-PBOX.depth;
+        const pbx2=this.team===0?FIELD.x+PBOX.depth:FIELD.x+FIELD.w;
+        const ballInBox=!ball.possessor&&
+          ball.pos.x>pbx1&&ball.pos.x<pbx2&&
+          ball.pos.y>pby1&&ball.pos.y<pby2;
+
         let targetY=ball.pos.y;
-        if(!ball.possessor&&towardGoal&&shotSpeed>6){
+        if(ballInBox){
+          // Sprint directly to ball
+          tp=new Vector(ball.pos.x,ball.pos.y);
+          this.isSprinting=true; this.stamina-=0.6*timeScale;
+        }else if(!ball.possessor&&towardGoal&&shotSpeed>6){
           const dx=goalLineX-ball.pos.x;
           const tFrames=ball.vel.x!==0?dx/ball.vel.x:999;
           if(tFrames>0&&tFrames<200){
@@ -946,10 +977,14 @@ class Player{
             targetY=rawPredictY+(Math.random()-0.5)*noise;
             if(Math.abs(targetY-this.pos.y)>20) this.isSprinting=true;
           }
-        }else{ targetY=ball.pos.y; }
-        targetY=Math.max(WORLD_H/2-GOAL.h/2+18,Math.min(WORLD_H/2+GOAL.h/2-18,targetY));
-        tp.x=homeX; tp.y=targetY;
-        if(!ball.possessor&&towardGoal&&shotSpeed>6){
+          targetY=Math.max(WORLD_H/2-GOAL.h/2+20,Math.min(WORLD_H/2+GOAL.h/2-20,targetY));
+          tp.x=homeX; tp.y=targetY;
+        }else{
+          targetY=Math.max(WORLD_H/2-GOAL.h/2+20,Math.min(WORLD_H/2+GOAL.h/2-20,ball.pos.y));
+          tp.x=homeX; tp.y=targetY;
+        }
+
+        if(!ballInBox&&!ball.possessor&&towardGoal&&shotSpeed>6){
           const d=new Vector(tp.x-this.pos.x,tp.y-this.pos.y);
           if(d.mag()>12){d.normalize();this.vel.add(new Vector(d.x*this.accel*1.1,d.y*this.accel*1.1))}
           if(!this.isAiming&&!this.isSliding){
@@ -972,7 +1007,7 @@ class Player{
         const nd=Math.min(...opps.map(p=>Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y)));
         const distToGoal=Math.hypot(goalX-this.pos.x,WORLD_H/2-this.pos.y);
         if(nd>220&&this.stamina>30){this.isSprinting=true;this.stamina-=0.6*timeScale}
-        const shootRange=currentDifficulty==='easy'?450:currentDifficulty==='normal'?550:700;
+        const shootRange=currentDifficulty==='easy'?600:currentDifficulty==='normal'?750:950;
         if(distToGoal<shootRange&&!this.isAiming){
           const shootChance=(1-(distToGoal/shootRange))*0.055*timeScale;
           if(Math.random()<shootChance){
@@ -1084,10 +1119,37 @@ class Player{
   }
 
   clampToField(){
+    // Field boundary
     if(this.pos.x<FIELD.x+PLAYER_RADIUS) this.pos.x=FIELD.x+PLAYER_RADIUS;
     if(this.pos.x>FIELD.x+FIELD.w-PLAYER_RADIUS) this.pos.x=FIELD.x+FIELD.w-PLAYER_RADIUS;
     if(this.pos.y<FIELD.y+PLAYER_RADIUS) this.pos.y=FIELD.y+PLAYER_RADIUS;
     if(this.pos.y>FIELD.y+FIELD.h-PLAYER_RADIUS) this.pos.y=FIELD.y+FIELD.h-PLAYER_RADIUS;
+
+    const pby1=WORLD_H/2-PBOX.h/2, pby2=WORLD_H/2+PBOX.h/2;
+    const r=PLAYER_RADIUS;
+
+    if(this.isGoalie){
+      // Goalie confined to their own penalty box
+      const gkLeft  = this.team===0 ? FIELD.x         : FIELD.x+FIELD.w-PBOX.depth;
+      const gkRight = this.team===0 ? FIELD.x+PBOX.depth : FIELD.x+FIELD.w;
+      this.pos.x=Math.max(gkLeft+r,  Math.min(gkRight-r, this.pos.x));
+      this.pos.y=Math.max(pby1+r,    Math.min(pby2-r,    this.pos.y));
+    } else {
+      // Outfield players cannot enter either penalty box
+      // Left box
+      const lbx1=FIELD.x, lbx2=FIELD.x+PBOX.depth;
+      const rbx1=FIELD.x+FIELD.w-PBOX.depth, rbx2=FIELD.x+FIELD.w;
+      const inY=this.pos.y>pby1-r&&this.pos.y<pby2+r;
+
+      if(inY&&this.pos.x<lbx2+r&&this.pos.x>lbx1){
+        this.pos.x=lbx2+r;
+        this.vel.x=Math.max(0,this.vel.x);
+      }
+      if(inY&&this.pos.x>rbx1-r&&this.pos.x<rbx2){
+        this.pos.x=rbx1-r;
+        this.vel.x=Math.min(0,this.vel.x);
+      }
+    }
   }
 
   draw(){
@@ -1220,12 +1282,14 @@ function setupTutorialStep(step){
     playerSpawn.pos=new Vector(WORLD_W/2-25,WORLD_H/2);
     ball.possessor=playerSpawn;
   }else if(step===2){
-    playerSpawn.pos=new Vector(FIELD.x+FIELD.w-400,WORLD_H/2);
-    ball.pos=new Vector(FIELD.x+FIELD.w-420,WORLD_H/2);
+    // Place just outside the penalty box so player can shoot freely
+    const shootX=FIELD.x+FIELD.w-PBOX.depth-80;
+    playerSpawn.pos=new Vector(shootX,WORLD_H/2);
+    ball.pos=new Vector(shootX,WORLD_H/2);
     ball.possessor=playerSpawn; playerSpawn.angle=0;
     playerSpawn.aimBaseAngle=0; playerSpawn.aimOffsetAngle=0;
     const gl=new Player(1,{rx:.95,ry:.5,role:'GK',isGoalie:true});
-    gl.pos=new Vector(FIELD.x+FIELD.w-30,WORLD_H/2);
+    gl.pos=new Vector(FIELD.x+FIELD.w-22,WORLD_H/2);
     players.push(gl);
   }else if(step===3){
     playerSpawn.pos=new Vector(WORLD_W/2,WORLD_H/2);
@@ -1255,12 +1319,13 @@ function setupTutorialStep(step){
     players.push(tm1,tm2);
   }else if(step===7){
     assistMode=false;
-    playerSpawn.pos=new Vector(FIELD.x+FIELD.w-500,WORLD_H/2);
+    const shootX=FIELD.x+FIELD.w-PBOX.depth-80;
+    playerSpawn.pos=new Vector(shootX,WORLD_H/2);
     ball.possessor=playerSpawn;
     playerSpawn.angle=0;
     playerSpawn.aimBaseAngle=0; playerSpawn.aimOffsetAngle=0;
     const gl=new Player(1,{rx:.95,ry:.5,role:'GK',isGoalie:true});
-    gl.pos=new Vector(FIELD.x+FIELD.w-30,WORLD_H/2);
+    gl.pos=new Vector(FIELD.x+FIELD.w-22,WORLD_H/2);
     players.push(gl);
   }
   camera.x=ball.pos.x-camera.w/2;
@@ -1504,16 +1569,17 @@ function setupNextPK(){
   const strikerTeam=pkState.turn;
   const goalieTeam=1-pkState.turn;
 
-  // Striker always shoots at right goal (team 0 goal is right)
+  // Striker always shoots at right goal
+  const pkSpotX=goalX-Math.round(PBOX.depth*0.65);
   const striker=new Player(strikerTeam,{rx:0,ry:0,role:'ST',isStriker:true});
-  striker.pos=new Vector(goalX-350,WORLD_H/2);
+  striker.pos=new Vector(pkSpotX,WORLD_H/2);
   striker.angle=0;
-  ball.pos=new Vector(goalX-350,WORLD_H/2);
+  ball.pos=new Vector(pkSpotX,WORLD_H/2);
   ball.vel=new Vector(0,0);
   ball.possessor=striker;
 
   const goalie=new Player(goalieTeam,{rx:0,ry:0,role:'GK',isGoalie:true});
-  goalie.pos=new Vector(goalX-18,WORLD_H/2);
+  goalie.pos=new Vector(goalX-20,WORLD_H/2);
   goalie.angle=Math.PI;
 
   players.push(striker,goalie);
@@ -1864,20 +1930,43 @@ function drawPitch(){
   ctx.beginPath();ctx.moveTo(WORLD_W/2,FIELD.y);ctx.lineTo(WORLD_W/2,FIELD.y+FIELD.h);ctx.stroke();
   ctx.beginPath();ctx.arc(WORLD_W/2,WORLD_H/2,120,0,Math.PI*2);ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.arc(WORLD_W/2,WORLD_H/2,8,0,Math.PI*2);ctx.fill();
-  const pw=350,ph=600,sw2=120,sh=280;
-  [FIELD.x,FIELD.x+FIELD.w-pw].forEach((x,i)=>{
-    ctx.strokeRect(x,WORLD_H/2-ph/2,pw,ph);
-    ctx.strokeRect(x+(i===0?0:pw-sw2),WORLD_H/2-sh/2,sw2,sh);
-  });
-  ctx.lineWidth=4; ctx.fillStyle='rgba(200,200,200,.2)';
+  const pw=PBOX.depth, ph=PBOX.h;
+  // Penalty box fill (subtle tint to show no-go zone for outfield)
+  ctx.fillStyle='rgba(255,255,255,0.04)';
+  ctx.fillRect(FIELD.x,         WORLD_H/2-ph/2, pw, ph);
+  ctx.fillRect(FIELD.x+FIELD.w-pw, WORLD_H/2-ph/2, pw, ph);
+  // Penalty box lines
+  ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=4;
+  ctx.strokeRect(FIELD.x,            WORLD_H/2-ph/2, pw, ph);
+  ctx.strokeRect(FIELD.x+FIELD.w-pw, WORLD_H/2-ph/2, pw, ph);
+  // Six-yard boxes (small inner box)
+  const sw2=100, sh2=ph*0.38;
+  ctx.strokeRect(FIELD.x,                       WORLD_H/2-sh2/2, sw2, sh2);
+  ctx.strokeRect(FIELD.x+FIELD.w-sw2,           WORLD_H/2-sh2/2, sw2, sh2);
+  // Penalty spots
+  ctx.fillStyle='rgba(255,255,255,.85)';
+  ctx.beginPath();ctx.arc(FIELD.x+pw*0.65,       WORLD_H/2,5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(FIELD.x+FIELD.w-pw*0.65,WORLD_H/2,5,0,Math.PI*2);ctx.fill();
+  // Penalty arc
+  ctx.save();
+  ctx.beginPath();ctx.arc(FIELD.x+pw*0.65,WORLD_H/2,160,Math.PI*0.75,Math.PI*1.25,true);
+  ctx.clip();ctx.beginPath();ctx.arc(FIELD.x+pw*0.65,WORLD_H/2,160,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=4;ctx.stroke();ctx.restore();
+  ctx.save();
+  ctx.beginPath();ctx.arc(FIELD.x+FIELD.w-pw*0.65,WORLD_H/2,160,Math.PI*1.75,Math.PI*0.25,true);
+  ctx.clip();ctx.beginPath();ctx.arc(FIELD.x+FIELD.w-pw*0.65,WORLD_H/2,160,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=4;ctx.stroke();ctx.restore();
+  // Goals
+  ctx.lineWidth=4; ctx.fillStyle='rgba(200,200,200,.25)';
   ctx.fillRect(FIELD.x-GOAL.w,WORLD_H/2-GOAL.h/2,GOAL.w,GOAL.h);
+  ctx.strokeStyle='rgba(255,255,255,.85)';
   ctx.strokeRect(FIELD.x-GOAL.w,WORLD_H/2-GOAL.h/2,GOAL.w,GOAL.h);
   ctx.fillRect(FIELD.x+FIELD.w,WORLD_H/2-GOAL.h/2,GOAL.w,GOAL.h);
   ctx.strokeRect(FIELD.x+FIELD.w,WORLD_H/2-GOAL.h/2,GOAL.w,GOAL.h);
-  // PK spot
+  // PK spot marker
   if(gameState==='pk'){
     ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.arc(FIELD.x+FIELD.w-350,WORLD_H/2,8,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(FIELD.x+FIELD.w-pw*0.65,WORLD_H/2,8,0,Math.PI*2);ctx.stroke();
   }
 }
 
