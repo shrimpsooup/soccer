@@ -438,6 +438,7 @@ let currentDifficulty='normal', assistMode=true;
 let selectedTeams=[0,8]; // indices into TEAMS array
 let teamColors=['#6CABDD','#FEBE10'];
 let pkState={active:false,turn:0,round:1,history:[[],[]],ballStoppedTimer:0,aiTarget:null};
+let playerSwitchCooldown=0;
 let camera={x:0,y:0,w:window.innerWidth,h:window.innerHeight};
 let waitingForKeybind=null;
 const keys={};
@@ -656,7 +657,7 @@ class Player{
     let dm=1;
     if(team===1){dm=currentDifficulty==='easy'?.65:currentDifficulty==='normal'?.85:1}
     // Goalies are slower and less agile than outfield players
-    const gkMod=this.isGoalie?0.58:1;
+    const gkMod=this.isGoalie?0.44:1;
     this.accel=0.85*dm*gkMod; this.turnSpeed=0.4*dm;
     this.maxSpeed=3.4*dm*gkMod; this.sprintSpeed=5.2*dm*gkMod;
     this.stamina=100; this.isSprinting=false;
@@ -714,10 +715,11 @@ class Player{
         if(keys[binds.Shoot_Slide]){
           this.isAiming=true; this.aimPower=Math.min(this.aimPower+0.8*timeScale,35);
           if(!this.wasAiming){this.aimTargetX=this.pos.x+Math.cos(this.angle)*150;this.aimTargetY=this.pos.y+Math.sin(this.angle)*150;this.wasAiming=true}
-          if(keys[binds.Up]||keys['ArrowUp']) this.aimTargetY-=15*timeScale;
-          if(keys[binds.Down]||keys['ArrowDown']) this.aimTargetY+=15*timeScale;
-          if(keys[binds.Left]||keys['ArrowLeft']) this.aimTargetX-=15*timeScale;
-          if(keys[binds.Right]||keys['ArrowRight']) this.aimTargetX+=15*timeScale;
+          const aimSpd=(assistMode?15:28)*timeScale;
+          if(keys[binds.Up]||keys['ArrowUp']) this.aimTargetY-=aimSpd;
+          if(keys[binds.Down]||keys['ArrowDown']) this.aimTargetY+=aimSpd;
+          if(keys[binds.Left]||keys['ArrowLeft']) this.aimTargetX-=aimSpd;
+          if(keys[binds.Right]||keys['ArrowRight']) this.aimTargetX+=aimSpd;
           this.aimDir=Math.atan2(this.aimTargetY-this.pos.y,this.aimTargetX-this.pos.x);
           this.angle=this.aimDir;
           if(assistMode) this.assistedTarget=this.getBestAssistTarget();
@@ -777,13 +779,12 @@ class Player{
         }
         this.isAiming=true;
         this.aimPower=Math.min(this.aimPower+0.8*timeScale,35);
-        if(keys[binds.Up]||keys['ArrowUp']) this.aimTargetY-=15*timeScale;
-        if(keys[binds.Down]||keys['ArrowDown']) this.aimTargetY+=15*timeScale;
-        if(keys[binds.Left]||keys['ArrowLeft']) this.aimTargetX-=15*timeScale;
-        if(keys[binds.Right]||keys['ArrowRight']) this.aimTargetX+=15*timeScale;
-        this.aimDir=Math.atan2(this.aimTargetY-this.pos.y,this.aimTargetX-this.pos.x);
-        this.angle=this.aimDir;
         let curAssist=(tutState.active&&tutState.step===6)?true:(tutState.active&&tutState.step===7)?false:assistMode;
+        const aimSpd=(curAssist?15:28)*timeScale;
+        if(keys[binds.Up]||keys['ArrowUp']) this.aimTargetY-=aimSpd;
+        if(keys[binds.Down]||keys['ArrowDown']) this.aimTargetY+=aimSpd;
+        if(keys[binds.Left]||keys['ArrowLeft']) this.aimTargetX-=aimSpd;
+        if(keys[binds.Right]||keys['ArrowRight']) this.aimTargetX+=aimSpd;
         if(curAssist){
           this.assistedTarget=this.getBestAssistTarget();
           if(tutState.active&&tutState.step===6&&this.assistedTarget) tutState.assistShown=true;
@@ -888,53 +889,41 @@ class Player{
 
         let targetY=ball.pos.y;
 
-        if(!ball.possessor&&towardGoal&&shotSpeed>3){
-          // Predict where ball crosses goal line
+        if(!ball.possessor&&towardGoal&&shotSpeed>6){
+          // Only react to proper shots, with heavy positional error
           const dx=goalLineX-ball.pos.x;
           const tFrames=ball.vel.x!==0?dx/ball.vel.x:999;
           if(tFrames>0&&tFrames<200){
             const rawPredictY=ball.pos.y+ball.vel.y*tFrames;
-            // Difficulty-scaled reaction noise — much more generous now
-            const noise=currentDifficulty==='easy'?180:currentDifficulty==='normal'?90:45;
+            const noise=currentDifficulty==='easy'?300:currentDifficulty==='normal'?180:90;
             targetY=rawPredictY+(Math.random()-0.5)*noise;
             if(Math.abs(targetY-this.pos.y)>20) this.isSprinting=true;
           }
         }else{
-          // Ball not in flight toward us — track ball y with a small lag
+          // Just track the ball's Y loosely when no shot is incoming
           targetY=ball.pos.y;
-          // Slide out a little to cut angle when attacker is close in our half
-          if(ball.possessor&&ball.possessor.team!==this.team){
-            const inMyHalf=this.team===0?ball.pos.x<WORLD_W*0.32:ball.pos.x>WORLD_W*0.68;
-            const distToBallHolder=Math.hypot(ball.possessor.pos.x-this.pos.x,ball.possessor.pos.y-this.pos.y);
-            if(inMyHalf&&distToBallHolder<350){
-              // Step out toward ball to narrow shooting angle
-              const stepOut=Math.min(60,distToBallHolder*0.12);
-              tp.x=homeX+(this.team===0?stepOut:-stepOut);
-            }
-          }
         }
 
         // Keep goalie within post range
         targetY=Math.max(WORLD_H/2-GOAL.h/2+18,Math.min(WORLD_H/2+GOAL.h/2-18,targetY));
         tp.x=homeX; tp.y=targetY;
 
-        // Reaction speed boost when dive is needed (scales with ball speed)
-        if(!ball.possessor&&towardGoal&&shotSpeed>5){
+        // Mild dive boost — no longer scales with shot power
+        if(!ball.possessor&&towardGoal&&shotSpeed>6){
           const d=new Vector(tp.x-this.pos.x,tp.y-this.pos.y);
           if(d.mag()>12){
             d.normalize();
-            const diveAccel=this.accel*(1.2+shotSpeed*0.03); // reduced from 1.8+0.06
+            const diveAccel=this.accel*1.1;
             this.vel.add(new Vector(d.x*diveAccel,d.y*diveAccel));
           }
-          // Skip the generic movement block below
           if(!this.isAiming&&!this.isSliding){
             if(!this.isSprinting){this.vel.mult(1-((1-0.88)*timeScale));}
-            const ms=this.isSprinting?this.sprintSpeed*1.2:this.maxSpeed;
+            const ms=this.isSprinting?this.sprintSpeed:this.maxSpeed;
             if(this.vel.mag()>ms){this.vel.normalize();this.vel.mult(ms)}
           }
           this.pos.x+=this.vel.x*timeScale; this.pos.y+=this.vel.y*timeScale;
           this.clampToField();
-          if((gameState==='playing'||tutState.active)&&!this.isSliding&&this.actionCooldown<=0&&Math.hypot(this.pos.x-ball.pos.x,this.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+10&&ball.possessor!==this)
+          if((gameState==='playing'||gameState==='tutorial')&&!this.isSliding&&this.actionCooldown<=0&&Math.hypot(this.pos.x-ball.pos.x,this.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+10&&ball.possessor!==this)
             {ball.possessor=this;this.aimDir=this.angle}
           return;
         }
@@ -1022,6 +1011,9 @@ class Player{
         }
 
       }else{
+        // Lost the ball — clear any leftover aiming state so the player doesn't freeze
+        this.isAiming=false; this.aimPower=0; this.wasAiming=false;
+        this._passDecisionTimer=0;
         const closestDist=Math.min(...players.filter(p=>p.team===this.team&&!p.isGoalie).map(p=>Math.hypot(p.pos.x-ball.pos.x,p.pos.y-ball.pos.y)));
         const distToBall=Math.hypot(ball.pos.x-this.pos.x,ball.pos.y-this.pos.y);
         if(distToBall<=closestDist+50&&!myHasBall){
@@ -1395,6 +1387,7 @@ function startGame(){
   pkState={active:false,turn:0,round:1,history:[[],[]],ballStoppedTimer:0,aiTarget:null};
   kickoffTeam=0; energyMeter=100; resetTimer=0;
   for(let k in keys) keys[k]=false;
+  playerSwitchCooldown=0;
   resetKickoff();
   if(!animationId) gameLoop();
 }
@@ -1626,7 +1619,11 @@ function gameLoop(){
     handleTimeAndEnergy();
 
     if(gameState==='playing'||gameState==='kickoff'){
+      // Decrement switch cooldown
+      if(playerSwitchCooldown>0) playerSwitchCooldown-=timeScale;
+
       let nearestDist=Infinity, nearestPlayer=null;
+      const currentActive=players.find(p=>p.team===0&&p.isActive);
       for(let p of players){
         if(p.team===0){
           p.isActive=false;
@@ -1637,7 +1634,16 @@ function gameLoop(){
           }
         }
       }
-      if(nearestPlayer) nearestPlayer.isActive=true;
+      // Only switch to a different player if cooldown has expired
+      if(nearestPlayer){
+        if(nearestPlayer===currentActive||playerSwitchCooldown<=0){
+          nearestPlayer.isActive=true;
+          if(nearestPlayer!==currentActive) playerSwitchCooldown=30; // ~0.5s cooldown
+        }else{
+          // Keep the current player active during cooldown
+          if(currentActive) currentActive.isActive=true;
+        }
+      }
       players.forEach(p=>p.update()); ball.update();
     }else if(gameState==='goal'){
       resetTimer--; if(resetTimer<=0&&matchStage!=='Penalties') resetKickoff();
