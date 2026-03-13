@@ -855,7 +855,20 @@ class Player{
     if(this.isGoalie){
       if(ball.possessor===this){
         const nd=Math.min(...players.filter(p=>p.team!==this.team).map(p=>Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y)));
-        if(nd<200||Math.random()<0.03*timeScale) this.pass();
+        if(nd<200||Math.random()<0.03*timeScale){
+          // Face the nearest open teammate before passing so angle filter doesn't block it
+          const teammates=players.filter(p=>p.team===this.team&&p!==this);
+          if(teammates.length>0){
+            // Pick the teammate furthest upfield (closest to opponent goal)
+            const target=teammates.reduce((best,p)=>{
+              const bx=this.team===0?p.pos.x:-p.pos.x;
+              const bb=this.team===0?best.pos.x:-best.pos.x;
+              return bx>bb?p:best;
+            });
+            this.angle=Math.atan2(target.pos.y-this.pos.y,target.pos.x-this.pos.x);
+          }
+          this.pass();
+        }
       }else{
         const goalLineX=this.team===0?FIELD.x:FIELD.x+FIELD.w;
         const homeX=this.team===0?FIELD.x+22:FIELD.x+FIELD.w-22;
@@ -973,10 +986,11 @@ class Player{
 
   pass(){
     ball.possessor=null; let bt=null,md=Infinity;
+    const cone=this.isGoalie?Math.PI*1.8:Math.PI/1.5; // goalies pass in almost any direction
     for(let p of players){
       if(p.team===this.team&&p!==this){
         const d=Math.hypot(p.pos.x-this.pos.x,p.pos.y-this.pos.y);
-        if(Math.abs(lerpAngle(this.angle,Math.atan2(p.pos.y-this.pos.y,p.pos.x-this.pos.x),1)-this.angle)<Math.PI/1.5&&d<md&&d>100){md=d;bt=p}
+        if(Math.abs(lerpAngle(this.angle,Math.atan2(p.pos.y-this.pos.y,p.pos.x-this.pos.x),1)-this.angle)<cone&&d<md&&d>80){md=d;bt=p}
       }
     }
     if(bt){
@@ -985,7 +999,9 @@ class Player{
       let pa=Math.atan2(dy,dx);
       if(this.team===1){const em=currentDifficulty==='easy'?.4:currentDifficulty==='normal'?.2:.05;pa+=(Math.random()-.5)*em}
       ball.vel=new Vector(Math.cos(pa)*pwr,Math.sin(pa)*pwr);
-    }else{this.aimPower=this.isGoalie?30:20;this.executeShot()}
+    }else{this.aimPower=this.isGoalie?30:20;this.executeShot();}
+    // Prevent the passer from immediately re-picking up their own pass
+    this.actionCooldown=25;
   }
 
   clampToField(){
