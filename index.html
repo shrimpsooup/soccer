@@ -438,6 +438,7 @@ const FIELD={x:120,y:120,w:3160,h:1960};
 const GOAL={w:80,h:340};
 // Penalty box: how far from each goal line the box extends, and its height
 const PBOX={depth:220,h:520}; // penalty box, centered on goal
+const ZOOM=0.55; // <1 = zoomed out
 const FRICTION=0.96;
 const PLAYER_RADIUS=16, BALL_RADIUS=9;
 
@@ -840,7 +841,7 @@ class Player{
       while(targetOffset<-Math.PI) targetOffset+=Math.PI*2;
       // Clamp so you can't aim more than ~160° from base (no shooting backward)
       targetOffset=Math.max(-Math.PI*0.88,Math.min(Math.PI*0.88,targetOffset));
-      const lerpRate=0.18*timeScale;
+      const lerpRate=0.07*timeScale;
       this.aimOffsetAngle+=(targetOffset-this.aimOffsetAngle)*lerpRate;
     }
     // No keys = aim stays wherever it is (no drift back to center)
@@ -1328,8 +1329,8 @@ function setupTutorialStep(step){
     gl.pos=new Vector(FIELD.x+FIELD.w-22,WORLD_H/2);
     players.push(gl);
   }
-  camera.x=ball.pos.x-camera.w/2;
-  camera.y=ball.pos.y-camera.h/2;
+  camera.x=ball.pos.x-camera.w/(ZOOM*2);
+  camera.y=ball.pos.y-camera.h/(ZOOM*2);
 }
 
 function advanceTutorial(){
@@ -1459,6 +1460,14 @@ function setupTeams(){
 
 function resetKickoff(){
   setupTeams();
+  // Push every player back into their own half before kickoff
+  players.forEach(p=>{
+    if(p.team===0){
+      if(p.pos.x>WORLD_W/2-PLAYER_RADIUS) p.pos.x=WORLD_W/2-PLAYER_RADIUS;
+    }else{
+      if(p.pos.x<WORLD_W/2+PLAYER_RADIUS) p.pos.x=WORLD_W/2+PLAYER_RADIUS;
+    }
+  });
   ball.pos=new Vector(WORLD_W/2,WORLD_H/2); ball.vel=new Vector(0,0);
   const striker=players.find(p=>p.team===kickoffTeam&&p.isStriker);
   if(striker){striker.pos=new Vector(WORLD_W/2-(kickoffTeam===0?20:-20),WORLD_H/2);ball.possessor=striker}
@@ -1905,16 +1914,22 @@ function drawPKFieldOverlay(){
 
 // ─────────────── RENDERING ───────────────
 function updateCamera(){
+  // Visible world area is larger when zoomed out
+  const vw=camera.w/ZOOM, vh=camera.h/ZOOM;
   let tx, ty;
   if(gameState==='pk'){
-    tx=pkState.pkCameraTarget.x;
-    ty=pkState.pkCameraTarget.y;
+    tx=pkState.pkCameraTarget.x - (vw-canvas.width/ZOOM)/2;
+    ty=pkState.pkCameraTarget.y - (vh-canvas.height/ZOOM)/2;
+    // For PK, center on the goal
+    const goalX=FIELD.x+FIELD.w;
+    tx=goalX - vw*0.6;
+    ty=WORLD_H/2 - vh/2;
   }else{
-    tx=ball.pos.x-camera.w/2;
-    ty=ball.pos.y-camera.h/2;
+    tx=ball.pos.x - vw/2;
+    ty=ball.pos.y - vh/2;
   }
-  tx=Math.max(-100,Math.min(tx,WORLD_W-camera.w+100));
-  ty=Math.max(-100,Math.min(ty,WORLD_H-camera.h+100));
+  tx=Math.max(-80,Math.min(tx,WORLD_W-vw+80));
+  ty=Math.max(-80,Math.min(ty,WORLD_H-vh+80));
   camera.x+=(tx-camera.x)*0.08; camera.y+=(ty-camera.y)*0.08;
 }
 
@@ -2062,7 +2077,9 @@ function gameLoop(timestamp){
   }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.save(); ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
+  ctx.save();
+  ctx.scale(ZOOM,ZOOM);
+  ctx.translate(-Math.floor(camera.x),-Math.floor(camera.y));
   drawPitch();
   if(gameState==='pk') drawPKFieldOverlay();
   const rl=[...players]; rl.sort((a,b)=>a.pos.y-b.pos.y);
