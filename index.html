@@ -177,56 +177,34 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1}
 #result-score{font-family:Impact,'Arial Narrow',sans-serif;font-size:36px;color:#888;letter-spacing:4px}
 #result-teams{font-size:13px;letter-spacing:2px;color:#555;text-transform:uppercase}
 
-/* ── PK HUD ── */
+/* ── PK HUD (score history) ── */
 #pk-hud{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,.85);border:1px solid #333;border-radius:10px;
-  padding:14px 24px;display:none;flex-direction:column;align-items:center;gap:8px;z-index:200;
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.88);border:1px solid #333;border-radius:10px;
+  padding:12px 22px;display:none;flex-direction:column;align-items:center;gap:8px;z-index:200;
 }
 .pk-row{display:flex;align-items:center;gap:10px}
-.pk-team-name{font-size:12px;font-weight:700;letter-spacing:2px;min-width:50px;text-align:right}
+.pk-team-name{font-size:12px;font-weight:700;letter-spacing:2px;min-width:54px;text-align:right}
 .pk-team-name.away{text-align:left}
 .pk-dots{display:flex;gap:6px}
 .pk-dot{width:14px;height:14px;border-radius:50%;background:#2a2a2a;border:2px solid #444;transition:all .3s}
 .pk-dot.score{background:#00cc44;border-color:#00cc44;box-shadow:0 0 6px #00cc44}
 .pk-dot.miss{background:#cc2200;border-color:#cc2200}
 
-/* ── PK SHOOTER HUD (bottom center) ── */
-#pk-shooter-hud{
-  position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
-  display:none;flex-direction:column;align-items:center;gap:6px;z-index:250;
-  pointer-events:none;
+/* ── PK INSTRUCTIONS ── */
+#pk-instructions{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:none;z-index:250;pointer-events:none;
+  flex-direction:column;align-items:center;gap:6px;
 }
-.pk-instruction{font-size:13px;letter-spacing:2px;color:#aaa;text-transform:uppercase;text-align:center}
-#pk-power-bar-wrap{
-  width:280px;height:20px;background:rgba(0,0,0,.7);border:1px solid #444;border-radius:10px;overflow:hidden;
+.pk-instr-title{font-family:Impact,'Arial Narrow',sans-serif;font-size:18px;letter-spacing:3px;color:#f0c040;text-transform:uppercase}
+.pk-instr-keys{display:flex;gap:12px;margin-top:2px}
+.pk-instr-key{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 14px;background:rgba(255,255,255,.08);border:1px solid #555;border-radius:6px;
+  font-size:13px;color:#fff;font-weight:700;min-width:60px;
 }
-#pk-power-bar{height:100%;width:0%;border-radius:10px;transition:background .1s}
-#pk-aim-indicator{
-  width:280px;height:32px;position:relative;
-}
-.pk-aim-zones{display:flex;width:100%;height:100%;border-radius:6px;overflow:hidden}
-.pk-aim-zone{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:1px;opacity:.5}
-#pk-aim-cursor{
-  position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:4px;height:100%;background:#fff;border-radius:2px;
-  box-shadow:0 0 8px rgba(255,255,255,.8);transition:left 0s;
-}
-
-/* ── PK GOALIE HUD ── */
-#pk-goalie-hud{
-  position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
-  display:none;flex-direction:column;align-items:center;gap:8px;z-index:250;
-  pointer-events:none;
-}
-.pk-dive-prompt{font-size:16px;font-weight:700;letter-spacing:2px;color:#f0c040;text-transform:uppercase;text-align:center}
-.pk-dive-keys{display:flex;gap:20px;margin-top:4px}
-.pk-dive-key{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  padding:8px 20px;background:rgba(255,255,255,.08);border:1px solid #444;border-radius:8px;
-  font-size:13px;color:#fff;font-weight:700;
-}
-.pk-dive-key span{font-size:10px;color:#888;letter-spacing:1px}
+.pk-instr-key span{font-size:9px;color:#888;letter-spacing:1px;text-transform:uppercase}
 
 /* ── SETTINGS ── */
 #settings-menu{display:none;flex-direction:column;padding:28px 32px;gap:12px;min-width:380px}
@@ -273,28 +251,10 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1}
   </div>
 </div>
 
-<!-- PK SHOOTER HUD -->
-<div id="pk-shooter-hud">
-  <div class="pk-instruction" id="pk-shoot-instruction">Hold SPACE to charge — aim with ← →</div>
-  <div id="pk-power-bar-wrap"><div id="pk-power-bar"></div></div>
-  <div id="pk-aim-indicator">
-    <div class="pk-aim-zones">
-      <div class="pk-aim-zone" style="background:rgba(255,80,80,.2)">◄ LEFT</div>
-      <div class="pk-aim-zone" style="background:rgba(255,255,80,.1)">CENTER</div>
-      <div class="pk-aim-zone" style="background:rgba(255,80,80,.2)">RIGHT ►</div>
-    </div>
-    <div id="pk-aim-cursor"></div>
-  </div>
-</div>
-
-<!-- PK GOALIE HUD -->
-<div id="pk-goalie-hud">
-  <div class="pk-dive-prompt">⬇ PICK A SIDE TO DIVE ⬇</div>
-  <div class="pk-dive-keys">
-    <div class="pk-dive-key">← A<span>DIVE LEFT</span></div>
-    <div class="pk-dive-key">→ D<span>DIVE RIGHT</span></div>
-    <div class="pk-dive-key">↑ W<span>STAY CENTER</span></div>
-  </div>
+<!-- PK INSTRUCTIONS (shown on canvas via drawPK, this is fallback text) -->
+<div id="pk-instructions">
+  <div class="pk-instr-title" id="pk-instr-title">AIM &amp; SHOOT</div>
+  <div class="pk-instr-keys" id="pk-instr-keys"></div>
 </div>
 
 <!-- TUTORIAL UI -->
@@ -553,12 +513,8 @@ window.addEventListener('keydown',e=>{
   }
   keys[e.code]=true;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ControlLeft'].includes(e.code)) e.preventDefault();
-  // PK goalie input
-  if(gameState==='pk'&&pkState.phase==='player_goalie'){
-    if(e.code===binds.Left||e.code==='ArrowLeft') pkState.playerGoalieDived='left';
-    else if(e.code===binds.Right||e.code==='ArrowRight') pkState.playerGoalieDived='right';
-    else if(e.code===binds.Up||e.code==='ArrowUp') pkState.playerGoalieDived='center';
-  }
+  // PK goalie input (when AI is shooting, player picks dive direction)
+  if(gameState==='pk') handlePKGoalieInput(e.code);
 });
 window.addEventListener('keyup',e=>{ if(!waitingForKeybind) keys[e.code]=false; });
 
@@ -584,8 +540,7 @@ function hideAll(){
   });
   document.getElementById('broadcast-hud').style.display='none';
   document.getElementById('pk-hud').style.display='none';
-  document.getElementById('pk-shooter-hud').style.display='none';
-  document.getElementById('pk-goalie-hud').style.display='none';
+  document.getElementById('pk-instructions').style.display='none';
   document.getElementById('overlay-msg').style.display='none';
   document.getElementById('tutorial-ui').style.display='none';
 }
@@ -1435,14 +1390,22 @@ function startGame(){
   document.getElementById('match-clock').textContent="00'";
   document.getElementById('match-clock').style.color='#f0c040';
   pkState={
-    active:false,phase:'waiting',turn:0,round:1,history:[[],[]],
-    powerBar:0,powerDir:1,powerSpeed:1.2,
-    aimAngle:0,aimSpeed:0.012,aimDir:1,
-    shotFired:false,shotResult:null,
-    playerGoalieDived:null,aiGoalieDive:null,
-    aiShootAngle:0,aiShootPower:0,
-    countdown:3,countdownTimer:0,resultTimer:0,ballStoppedTimer:0,
-    pkCameraTarget:{x:FIELD.x+FIELD.w,y:WORLD_H/2},
+    phase:'waiting',   // waiting|aiming|charging|ai_shooting|goalie_choice|ball_flying|result
+    turn:0, round:1, history:[[],[]],
+    // shooter state
+    aimRow:1, aimCol:1,          // 0/1/2 grid position (row=top/mid/bot, col=left/mid/right)
+    power:0, powerDir:1,         // bouncing 0→100→0
+    shotFired:false,
+    // goalie state
+    goalieDive:null,             // 'tl'|'tm'|'tr'|'ml'|'mm'|'mr'|'bl'|'bm'|'br' (player choice or AI)
+    aiGoalieDive:null,
+    playerGoalieDive:null,
+    // result
+    shotResult:null,             // 'goal'|'saved'|'miss'
+    resultTimer:0,
+    // visual
+    goalieDiveProgress:0,        // 0→1 animation
+    goalieTargetY:WORLD_H/2,
   };
   kickoffTeam=0; energyMeter=100; resetTimer=0;
   for(let k in keys) keys[k]=false;
@@ -1532,8 +1495,7 @@ function endMatch(){
   document.getElementById('broadcast-hud').style.display='none';
   document.getElementById('overlay-msg').style.display='none';
   document.getElementById('pk-hud').style.display='none';
-  document.getElementById('pk-shooter-hud').style.display='none';
-  document.getElementById('pk-goalie-hud').style.display='none';
+  document.getElementById('pk-instructions').style.display='none';
   const mo=document.getElementById('match-over');
   mo.style.display='flex';
   const rt=document.getElementById('result-title');
@@ -1546,264 +1508,203 @@ function endMatch(){
 }
 
 // ═══════════════════════════════════════
-// ══  REVAMPED PENALTY KICK SYSTEM  ═════
+// ══       PENALTY SHOOTOUT v2        ═══
 // ═══════════════════════════════════════
+//
+// Phases:
+//   'intro'        — show "ROUND N / YOUR TURN" overlay for 2s
+//   'aiming'       — player moves crosshair on 3×3 goal grid with WASD, presses SPACE to start charging
+//   'charging'     — power bar bounces, release SPACE to shoot
+//   'ai_shooting'  — AI shoots after short delay, player picks goalie dive with WASD/arrow
+//   'goalie_choice'— player pressing a direction before ball arrives
+//   'ball_flying'  — ball in flight (uses normal physics), goalie diving
+//   'result'       — show GOAL / SAVED / MISS for 2s then next kick
+
+const PK_GOAL_X = FIELD.x+FIELD.w;  // the goal penalties are always shot at (right goal)
+const PK_GRID_COLS=3, PK_GRID_ROWS=3;
+
+// Map grid cell to world Y target inside goal
+function pkCellToY(row){ return WORLD_H/2 + (row-1)*(GOAL.h/2-30); }
+// Map grid cell col to aim label
+function pkCellLabel(row,col){
+  const r=['TOP','MID','BOT'][row], c=['LEFT','CENT','RIGHT'][col];
+  return r+' '+c;
+}
 
 function beginPKShootout(){
   gameState='pk';
   document.getElementById('overlay-msg').style.display='none';
   document.getElementById('pk-hud').style.display='flex';
-  pkState.turn=0; pkState.round=1;
-  pkState.history=[[],[]];
+  pkState.turn=0; pkState.round=1; pkState.history=[[],[]];
   updatePKUI();
   setupNextPK();
 }
 
 function setupNextPK(){
-  // Reset mechanic state
-  pkState.phase='waiting';
-  pkState.powerBar=0; pkState.powerDir=1;
-  pkState.aimAngle=0; pkState.aimDir=1;
-  pkState.shotFired=false; pkState.shotResult=null;
-  pkState.playerGoalieDived=null; pkState.aiGoalieDive=null;
-  pkState.countdown=3; pkState.countdownTimer=60; // 1s per count
-  pkState.resultTimer=0; pkState.ballStoppedTimer=0;
+  const pk=pkState;
+  pk.phase='intro';
+  pk.aimRow=1; pk.aimCol=1;
+  pk.power=0; pk.powerDir=1; pk.shotFired=false;
+  pk.shotResult=null; pk.resultTimer=0;
+  pk.goalieDive=null; pk.aiGoalieDive=null; pk.playerGoalieDive=null;
+  pk.goalieDiveProgress=0; pk.goalieTargetY=WORLD_H/2;
+  document.getElementById('pk-instructions').style.display='none';
 
-  document.getElementById('pk-shooter-hud').style.display='none';
-  document.getElementById('pk-goalie-hud').style.display='none';
-
-  // Build players: striker + goalie
+  // Spawn striker + goalie
   players=[];
-  const goalX=FIELD.x+FIELD.w;
-  const strikerTeam=pkState.turn;
-  const goalieTeam=1-pkState.turn;
-
-  // Striker always shoots at right goal
-  const pkSpotX=goalX-Math.round(PBOX.depth*0.65);
-  const striker=new Player(strikerTeam,{rx:0,ry:0,role:'ST',isStriker:true});
-  striker.pos=new Vector(pkSpotX,WORLD_H/2);
+  const pkSpotX=PK_GOAL_X - Math.round(PBOX.depth*0.65);
+  const striker=new Player(pk.turn, {rx:0,ry:0,role:'ST',isStriker:true});
+  striker.pos=new Vector(pkSpotX, WORLD_H/2);
   striker.angle=0;
-  ball.pos=new Vector(pkSpotX,WORLD_H/2);
-  ball.vel=new Vector(0,0);
-  ball.possessor=striker;
+  ball.pos=new Vector(pkSpotX, WORLD_H/2);
+  ball.vel=new Vector(0,0); ball.possessor=striker;
 
-  const goalie=new Player(goalieTeam,{rx:0,ry:0,role:'GK',isGoalie:true});
-  goalie.pos=new Vector(goalX-20,WORLD_H/2);
+  const goalie=new Player(1-pk.turn, {rx:0,ry:0,role:'GK',isGoalie:true});
+  goalie.pos=new Vector(PK_GOAL_X-20, WORLD_H/2);
   goalie.angle=Math.PI;
-
   players.push(striker,goalie);
 
-  // Camera zoomed in on goal
-  pkState.pkCameraTarget={
-    x:goalX-canvas.width/2,
-    y:WORLD_H/2-canvas.height/2
-  };
-
-  // Show round/turn overlay
+  // Show intro overlay
   const overlay=document.getElementById('overlay-msg');
   overlay.style.display='block';
-  const teamName=TEAMS[selectedTeams[pkState.turn]].name;
-  document.getElementById('msg-main').textContent=`ROUND ${pkState.round}`;
-  document.getElementById('overlay-sub').textContent=`${pkState.turn===0?'YOUR TURN':'AI TURN'} TO SHOOT`;
-
+  document.getElementById('msg-main').textContent=`ROUND ${pk.round}`;
+  document.getElementById('overlay-sub').textContent=pk.turn===0?'YOUR KICK':'AI KICKS';
   setTimeout(()=>{
     overlay.style.display='none';
-    // Start countdown
-    pkState.phase='countdown';
-    pkState.countdown=3; pkState.countdownTimer=70;
-  },1800);
+    pk.phase=pk.turn===0?'aiming':'ai_shooting';
+    if(pk.turn===0) showPKInstructions('aim');
+    else{
+      // AI decides where to shoot immediately but delays the actual kick
+      const diff=currentDifficulty;
+      pk.aiAimRow=Math.random()<0.7?[0,2][Math.floor(Math.random()*2)]:1; // prefer corners
+      pk.aiAimCol=Math.random()<0.7?[0,2][Math.floor(Math.random()*2)]:1;
+      pk.aiKickDelay=Math.round(60+Math.random()*80); // 1–2.3s
+      showPKInstructions('goalie');
+    }
+  },2000);
+}
+
+function showPKInstructions(mode){
+  const el=document.getElementById('pk-instructions');
+  const title=document.getElementById('pk-instr-title');
+  const keys=document.getElementById('pk-instr-keys');
+  el.style.display='flex'; keys.innerHTML='';
+  if(mode==='aim'){
+    title.textContent='AIM WITH WASD · SPACE TO CHARGE';
+    const items=[['W/↑','TOP'],['A/←','LEFT'],['S/↓','BOTTOM'],['D/→','RIGHT'],['SPACE','SHOOT']];
+    items.forEach(([k,l])=>{ keys.innerHTML+=`<div class="pk-instr-key">${k}<span>${l}</span></div>`; });
+  }else if(mode==='charge'){
+    title.textContent='HOLD SPACE · RELEASE TO SHOOT';
+    keys.innerHTML='<div class="pk-instr-key" style="min-width:120px">SPACE<span>RELEASE = SHOOT</span></div>';
+  }else if(mode==='goalie'){
+    title.textContent='PICK A SIDE TO DIVE';
+    const items=[['W/↑','TOP'],['A/←','LEFT'],['S/↓','BOTTOM'],['D/→','RIGHT']];
+    items.forEach(([k,l])=>{ keys.innerHTML+=`<div class="pk-instr-key">${k}<span>${l}</span></div>`; });
+  }
 }
 
 function updatePKShooterMechanics(){
   const pk=pkState;
 
-  if(pk.phase==='countdown'){
-    pk.countdownTimer--;
-    if(pk.countdownTimer<=0){
-      pk.countdown--;
-      if(pk.countdown<=0){
-        // Start the actual shooting phase
-        if(pk.turn===0){
-          pk.phase='player_shooting';
-          document.getElementById('pk-shooter-hud').style.display='flex';
-          document.getElementById('pk-shoot-instruction').textContent=
-            'Hold SPACE to power up · ← → to aim';
-        }else{
-          pk.phase='ai_shooting';
-          // AI decides aim & power with some randomness
-          const diff=currentDifficulty;
-          const maxErr=diff==='easy'?0.5:diff==='normal'?0.3:0.1;
-          pk.aiShootAngle=(Math.random()*2-1)*0.85; // -1 to 1, aimed hard to corners
-          pk.aiShootPower=65+Math.random()*30;
-          pk.aiShootDelay=40+Math.random()*40;
-        }
-      }else{
-        pk.countdownTimer=70;
-      }
+  // ── AIMING phase: move crosshair with WASD ──
+  if(pk.phase==='aiming'){
+    // Edge-triggered moves via keydown would be cleaner but polling works if we throttle
+    if(!pk._aimMoved) pk._aimMoved=0;
+    pk._aimMoved+=_dt60;
+    if(pk._aimMoved>8){ // move every ~8 frames
+      pk._aimMoved=0;
+      if(keys[binds.Up]||keys['ArrowUp'])    pk.aimRow=Math.max(0,pk.aimRow-1);
+      if(keys[binds.Down]||keys['ArrowDown']) pk.aimRow=Math.min(2,pk.aimRow+1);
+      if(keys[binds.Left]||keys['ArrowLeft'])  pk.aimCol=Math.max(0,pk.aimCol-1);
+      if(keys[binds.Right]||keys['ArrowRight']) pk.aimCol=Math.min(2,pk.aimCol+1);
     }
-    return;
-  }
-
-  if(pk.phase==='player_shooting'){
-    // Power bar oscillates - player must time SPACE release for max power
     if(keys[binds.Shoot_Slide]||keys['Space']){
-      pk.powerBar=Math.min(100, pk.powerBar + pk.powerSpeed * 1.8);
-      if(pk.powerBar>=100) pk.powerDir=-1;
-    }else if(pk.powerBar>0){
-      // Released — fire!
-      firePKShot(pk.turn, pk.aimAngle, pk.powerBar);
-      pk.phase='ball_traveling';
-      document.getElementById('pk-shooter-hud').style.display='none';
-      return;
-    }
-
-    // Aim oscillates automatically; player can steer with ← →
-    pk.aimAngle += pk.aimDir * pk.aimSpeed;
-    if(pk.aimAngle>1) pk.aimDir=-1;
-    if(pk.aimAngle<-1) pk.aimDir=1;
-    if(keys[binds.Left]||keys['ArrowLeft'])  pk.aimAngle=Math.max(-1, pk.aimAngle-0.025);
-    if(keys[binds.Right]||keys['ArrowRight']) pk.aimAngle=Math.min(1, pk.aimAngle+0.025);
-
-    // Update HUD
-    const pct=pk.powerBar;
-    const bar=document.getElementById('pk-power-bar');
-    bar.style.width=pct+'%';
-    bar.style.background=pct<40?'#00cc44':pct<75?'#ffcc00':'#ff3300';
-    const cursor=document.getElementById('pk-aim-cursor');
-    const pxOffset=((pk.aimAngle+1)/2)*100;
-    cursor.style.left=pxOffset+'%';
-    cursor.style.transform='translateX(-50%)';
-
-    // Also show goalie prompt for player to think about where to aim
-    if(pk.playerGoalieDived===null){
-      // nothing yet
+      pk.phase='charging';
+      pk.power=0; pk.powerDir=1;
+      showPKInstructions('charge');
     }
     return;
   }
 
+  // ── CHARGING phase: bouncing power bar ──
+  if(pk.phase==='charging'){
+    const speed=1.4*_dt60;
+    pk.power+=pk.powerDir*speed;
+    if(pk.power>=100){ pk.power=100; pk.powerDir=-1; }
+    if(pk.power<0){ pk.power=0; pk.powerDir=1; }
+
+    if(!(keys[binds.Shoot_Slide]||keys['Space'])){
+      // Released — fire
+      pk.phase='ball_flying';
+      document.getElementById('pk-instructions').style.display='none';
+      firePKShot(pk.turn, pk.aimRow, pk.aimCol, pk.power);
+      // AI goalie decides dive direction now
+      decidePKGoalieDive(pk.turn, pk.aimRow, pk.aimCol);
+    }
+    return;
+  }
+
+  // ── AI SHOOTING phase ──
   if(pk.phase==='ai_shooting'){
-    pk.aiShootDelay--;
-    if(pk.aiShootDelay<=0){
-      firePKShot(pk.turn, pk.aiShootAngle, pk.aiShootPower);
-      pk.phase='ball_traveling';
-      // Show goalie hud for player to dive
-      document.getElementById('pk-goalie-hud').style.display='flex';
+    pk.aiKickDelay-=_dt60;
+    if(pk.aiKickDelay<=0){
+      pk.phase='ball_flying';
+      document.getElementById('pk-instructions').style.display='none';
+      firePKShot(pk.turn, pk.aiAimRow, pk.aiAimCol, 75+Math.random()*20);
+      // Player goalie — use whatever they picked, or default to center
+      pk.goalieDive=pk.playerGoalieDive||'center';
+      const rowMap={top:0,mid:1,bot:2};
+      const colMap={left:0,center:1,right:1};
+      pk.goalieTargetY=pkCellToY(rowMap[pk.goalieDive]??1);
     }
     return;
   }
 
-  if(pk.phase==='player_goalie'){
-    // Waiting for player keypress (handled in keydown)
-    if(pk.playerGoalieDived!==null){
-      pk.phase='ball_traveling';
-      document.getElementById('pk-goalie-hud').style.display='none';
-    }
-    return;
-  }
-
-  if(pk.phase==='ball_traveling'){
-    // Move ball
-    ball.pos.x+=ball.vel.x;
-    ball.pos.y+=ball.vel.y;
-    ball.vel.mult(0.99);
-
-    // Check if goalie should dive (player's goalie waits for input)
-    if(!pkState.shotFired){
-      pkState.shotFired=true;
-      const goalX=FIELD.x+FIELD.w;
-      // AI goalie dives towards where ball is going
-      const goalie=players.find(p=>p.isGoalie);
-      if(goalie){
-        if(pk.turn===0){
-          // AI is goalie - auto dive based on difficulty
-          const ballTargetY=ball.pos.y+ball.vel.y*(Math.abs((goalX-ball.pos.x)/ball.vel.x)||30);
-          const missChance=currentDifficulty==='easy'?0.7:currentDifficulty==='normal'?0.45:0.25;
-          if(Math.random()<missChance){
-            // Dive wrong way
-            pk.aiGoalieDive=ballTargetY<WORLD_H/2?'right':'left';
-          }else{
-            pk.aiGoalieDive=ballTargetY<WORLD_H/2?'left':'right';
-          }
-        }else{
-          // Player is goalie - show prompt
-          pk.phase='player_goalie';
-          document.getElementById('pk-goalie-hud').style.display='flex';
-          return;
-        }
-      }
-    }
-
-    // Animate goalie dive
+  // ── BALL FLYING: use normal ball.update(), just animate goalie ──
+  if(pk.phase==='ball_flying'){
     const goalie=players.find(p=>p.isGoalie);
     if(goalie){
-      const goalX=FIELD.x+FIELD.w;
-      const diveTarget=pk.turn===0?pk.aiGoalieDive:pk.playerGoalieDived;
-      if(diveTarget==='left'){
-        goalie.pos.y=Math.max(WORLD_H/2-GOAL.h/2+20,goalie.pos.y-7);
-        goalie.angle=Math.PI-0.5;
-      }else if(diveTarget==='right'){
-        goalie.pos.y=Math.min(WORLD_H/2+GOAL.h/2-20,goalie.pos.y+7);
-        goalie.angle=Math.PI+0.5;
-      }
+      pk.goalieDiveProgress=Math.min(1, pk.goalieDiveProgress+0.055*_dt60);
+      goalie.pos.y+=(pk.goalieTargetY-goalie.pos.y)*0.12*_dt60;
+      // Lean angle
+      const dy=pk.goalieTargetY-WORLD_H/2;
+      goalie.angle=Math.PI+(dy>30?-0.6:dy<-30?0.6:0);
     }
 
-    // Check outcome
-    const goalX=FIELD.x+FIELD.w;
-    const inGoalY=ball.pos.y>WORLD_H/2-GOAL.h/2&&ball.pos.y<WORLD_H/2+GOAL.h/2;
-    const pastGoalLine=ball.pos.x>goalX;
-
-    if(pastGoalLine){
-      const saved=goalie&&Math.hypot(goalie.pos.x-ball.pos.x,goalie.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+8;
-      if(inGoalY&&!saved){
-        pk.shotResult='goal';
-      }else if(saved){
-        pk.shotResult='saved';
-        ball.vel=new Vector(-ball.vel.x*0.5,-ball.vel.y*0.5);
-      }else{
-        pk.shotResult='miss';
-      }
-      pk.phase='result';
-      pk.resultTimer=150;
-      document.getElementById('pk-goalie-hud').style.display='none';
-    }else if(ball.vel.mag()<0.3){
-      pk.shotResult='miss';
-      pk.phase='result';
-      pk.resultTimer=150;
-    }
-    return;
-  }
-
-  if(pk.phase==='result'){
-    pk.resultTimer--;
-
-    // Show result overlay
-    const overlay=document.getElementById('overlay-msg');
-    overlay.style.display='block';
-    if(pk.shotResult==='goal'){
-      document.getElementById('msg-main').innerHTML='<span style="color:#00ff66">GOAL!</span>';
-      document.getElementById('overlay-sub').textContent='';
-      if(pk.resultTimer===149){
+    // Check if ball passed goal line
+    if(!pk.shotFired&&ball.pos.x>PK_GOAL_X-BALL_RADIUS){
+      pk.shotFired=true;
+      const inGoalY=ball.pos.y>WORLD_H/2-GOAL.h/2+5&&ball.pos.y<WORLD_H/2+GOAL.h/2-5;
+      const gk=players.find(p=>p.isGoalie);
+      const saved=gk&&Math.hypot(gk.pos.x-ball.pos.x,gk.pos.y-ball.pos.y)<PLAYER_RADIUS+BALL_RADIUS+14;
+      pk.shotResult=(!inGoalY)?'miss':saved?'saved':'goal';
+      pk.phase='result'; pk.resultTimer=130;
+      // Update score immediately
+      if(pk.shotResult==='goal'){
         score[pk.turn]++;
         document.getElementById('hud-score-home').textContent=score[0];
         document.getElementById('hud-score-away').textContent=score[1];
         pkState.history[pk.turn].push(1);
-        updatePKUI();
+      }else{
+        pkState.history[pk.turn].push(0);
       }
-    }else if(pk.shotResult==='saved'){
-      document.getElementById('msg-main').innerHTML='<span style="color:#ff8800">SAVED!</span>';
-      document.getElementById('overlay-sub').textContent='Great stop!';
-      if(pk.resultTimer===149){ pkState.history[pk.turn].push(0); updatePKUI(); }
-    }else{
-      document.getElementById('msg-main').innerHTML='<span style="color:#ff4444">MISSED!</span>';
-      document.getElementById('overlay-sub').textContent='Ballooned it!';
-      if(pk.resultTimer===149){ pkState.history[pk.turn].push(0); updatePKUI(); }
+      updatePKUI();
     }
+    // Timeout if ball stalls (missed over bar etc.)
+    else if(!pk.shotFired&&ball.vel.mag()<0.5){
+      pk.shotResult='miss';
+      pkState.history[pk.turn].push(0);
+      updatePKUI();
+      pk.phase='result'; pk.resultTimer=130;
+    }
+    return;
+  }
 
+  // ── RESULT ──
+  if(pk.phase==='result'){
+    pk.resultTimer-=_dt60;
     if(pk.resultTimer<=0){
-      overlay.style.display='none';
-      // Check if shootout is over
       if(checkPKWinner()) return;
-      // Switch turn
       pk.turn=1-pk.turn;
       if(pk.turn===0) pk.round++;
       setupNextPK();
@@ -1812,44 +1713,81 @@ function updatePKShooterMechanics(){
   }
 }
 
-function firePKShot(shooterTeam, aimAngle, power){
-  const goalX=FIELD.x+FIELD.w;
-  const striker=players.find(p=>p.isStriker||p.team===shooterTeam);
+// Player goalie inputs during ai_shooting phase
+function handlePKGoalieInput(code){
+  if(gameState!=='pk'||pkState.phase!=='ai_shooting') return;
+  const pk=pkState;
+  if(code===binds.Up||code==='ArrowUp'){
+    pk.playerGoalieDive='top';
+    pk.goalieTargetY=pkCellToY(0);
+  }else if(code===binds.Down||code==='ArrowDown'){
+    pk.playerGoalieDive='bot';
+    pk.goalieTargetY=pkCellToY(2);
+  }else if(code===binds.Left||code==='ArrowLeft'){
+    pk.playerGoalieDive='left';
+    // left/right = same Y row as center, but we offset col visually — aim mid Y
+    pk.goalieTargetY=WORLD_H/2;
+  }else if(code===binds.Right||code==='ArrowRight'){
+    pk.playerGoalieDive='right';
+    pk.goalieTargetY=WORLD_H/2;
+  }
+}
+
+function decidePKGoalieDive(shooterTeam, aimRow, aimCol, power){
+  const pk=pkState;
+  // AI goalie: difficulty affects save rate
+  const saveChance=currentDifficulty==='easy'?0.15:currentDifficulty==='normal'?0.3:0.55;
+  if(Math.random()<saveChance){
+    // Guess correctly
+    pk.aiGoalieDive={row:aimRow,col:aimCol};
+    pk.goalieTargetY=pkCellToY(aimRow);
+  }else{
+    // Guess wrong — dive random other cell
+    let r,c;
+    do{ r=Math.floor(Math.random()*3); c=Math.floor(Math.random()*3); }
+    while(r===aimRow&&c===aimCol);
+    pk.aiGoalieDive={row:r,col:c};
+    pk.goalieTargetY=pkCellToY(r);
+  }
+}
+
+function firePKShot(shooterTeam, aimRow, aimCol, power){
   ball.possessor=null;
-  // aimAngle: -1=far left, 0=center, 1=far right of goal
-  const targetY=WORLD_H/2 + aimAngle*(GOAL.h/2-18);
-  const speed=power*0.28+6;
-  const dx=goalX-ball.pos.x;
-  const dy=targetY-ball.pos.y;
+  const targetY=pkCellToY(aimRow);
+  // Add slight inaccuracy based on how far from max power
+  const accuracy=0.85+(power/100)*0.15;
+  const spread=(1-accuracy)*GOAL.h*0.4;
+  const finalY=targetY+(Math.random()-0.5)*spread;
+  const dx=PK_GOAL_X-ball.pos.x;
+  const dy=finalY-ball.pos.y;
   const mag=Math.hypot(dx,dy);
-  ball.vel=new Vector((dx/mag)*speed, (dy/mag)*speed);
+  const speed=14+power*0.12;
+  ball.vel=new Vector((dx/mag)*speed,(dy/mag)*speed);
+  // Face striker toward goal
+  const striker=players.find(p=>p.isStriker||p.team===shooterTeam);
   if(striker) striker.angle=Math.atan2(dy,dx);
+  pkState.shotFired=false; // reset so ball_flying can detect crossing
 }
 
 function checkPKWinner(){
   const h=pkState.history[0], a=pkState.history[1];
   const hs=h.reduce((s,v)=>s+v,0), as_=a.reduce((s,v)=>s+v,0);
   const hRemain=Math.max(0,5-h.length), aRemain=Math.max(0,5-a.length);
-
-  // Sudden death after 5 rounds
   if(h.length>=5&&a.length>=5&&h.length===a.length){
     if(hs!==as_){ endMatch(); return true; }
     return false;
   }
-
-  // Check if mathematically decided
   if(hs>as_+aRemain){ endMatch(); return true; }
   if(as_>hs+hRemain){ endMatch(); return true; }
   if(h.length===5&&a.length===5&&hs!==as_){ endMatch(); return true; }
-
   return false;
 }
 
 function updatePKUI(){
   for(let t=0;t<2;t++){
     const c=document.getElementById(`pk-dots-${t}`); c.innerHTML='';
-    const totalShots=Math.max(5,pkState.history[t].length+1);
-    for(let i=0;i<totalShots;i++){
+    const total=Math.max(5,pkState.history[t].length+(pkState.phase!=='result'?1:0));
+    for(let i=0;i<total;i++){
       const d=document.createElement('div'); d.className='pk-dot';
       if(pkState.history[t][i]===1) d.classList.add('score');
       else if(pkState.history[t][i]===0) d.classList.add('miss');
@@ -1858,56 +1796,84 @@ function updatePKUI(){
   }
 }
 
-// Draw PK goal view overlay (shows goal zones on field)
+// ── DRAW PK OVERLAY (on canvas, in world space) ──
 function drawPKFieldOverlay(){
   if(gameState!=='pk') return;
   const pk=pkState;
-  const goalX=FIELD.x+FIELD.w;
-  const gy=WORLD_H/2-GOAL.h/2;
+  const gx=PK_GOAL_X, gy=WORLD_H/2-GOAL.h/2;
+  const gw=GOAL.w, gh=GOAL.h;
+  const cw=gw, ch=gh/3; // cell size
 
-  // Goal zone grid (3 zones: left, center, right)
-  const zones=[
-    {y:gy,h:GOAL.h/3,label:'TOP L',col:'rgba(255,80,80,0.06)'},
-    {y:gy+GOAL.h/3,h:GOAL.h/3,label:'MID',col:'rgba(255,255,80,0.04)'},
-    {y:gy+GOAL.h*2/3,h:GOAL.h/3,label:'BOT R',col:'rgba(255,80,80,0.06)'},
-  ];
-  zones.forEach(z=>{
-    ctx.fillStyle=z.col;
-    ctx.fillRect(goalX,z.y,GOAL.w,z.h);
-  });
-
-  // Aim indicator on goal face during player shooting
-  if(pk.phase==='player_shooting'||pk.phase==='countdown'){
-    const aimY=WORLD_H/2+pk.aimAngle*(GOAL.h/2-18);
-    const pulse=0.7+Math.sin(Date.now()/100)*0.3;
-    ctx.strokeStyle=`rgba(255,220,0,${pulse})`;
-    ctx.lineWidth=4;
-    ctx.setLineDash([10,6]);
-    ctx.beginPath();
-    ctx.moveTo(ball.pos.x,ball.pos.y);
-    ctx.lineTo(goalX,aimY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Target X on goal
-    ctx.strokeStyle=`rgba(255,220,0,${pulse})`;
-    ctx.lineWidth=3;
-    const xs=12;
-    ctx.beginPath();ctx.moveTo(goalX+GOAL.w/2-xs,aimY-xs);ctx.lineTo(goalX+GOAL.w/2+xs,aimY+xs);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(goalX+GOAL.w/2+xs,aimY-xs);ctx.lineTo(goalX+GOAL.w/2-xs,aimY+xs);ctx.stroke();
+  // ── Draw goal face grid ──
+  const phases_show_grid=['aiming','charging','ai_shooting','ball_flying','result'];
+  if(phases_show_grid.includes(pk.phase)){
+    for(let row=0;row<3;row++){
+      for(let col=0;col<1;col++){ // goal is thin so just draw full width per row
+        const cy=gy+row*ch;
+        // Highlight selected cell (shooter aiming) or goalie dive (result)
+        let fill='rgba(255,255,255,0.04)';
+        if(pk.phase==='aiming'||pk.phase==='charging'){
+          if(row===pk.aimRow) fill='rgba(255,220,0,0.18)';
+        }
+        if(pk.phase==='result'||pk.phase==='ball_flying'){
+          // Show where goalie dived
+        }
+        ctx.fillStyle=fill;
+        ctx.fillRect(gx,cy,gw,ch);
+        // Row dividers
+        if(row>0){
+          ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(gx,cy); ctx.lineTo(gx+gw,cy); ctx.stroke();
+        }
+      }
+    }
   }
 
-  // Countdown
-  if(pk.phase==='countdown'&&pk.countdown>0){
-    const alpha=1-pk.countdownTimer/70;
-    const scale=1+(1-pk.countdownTimer/70)*0.5;
+  // ── Crosshair on goal face while aiming ──
+  if(pk.phase==='aiming'||pk.phase==='charging'){
+    const targetY=pkCellToY(pk.aimRow);
+    const cx=gx+gw/2, cy=targetY;
+    const pulse=0.6+Math.sin(Date.now()/120)*0.4;
+    const col=pk.phase==='charging'?`rgba(255,${Math.round(220*(1-pk.power/100))},0,${pulse})`:`rgba(255,220,0,${pulse})`;
+    // Draw X crosshair
+    const xs=18;
+    ctx.strokeStyle=col; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(cx-xs,cy-xs); ctx.lineTo(cx+xs,cy+xs); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+xs,cy-xs); ctx.lineTo(cx-xs,cy+xs); ctx.stroke();
+    // Dashed line from ball
+    ctx.strokeStyle=`rgba(255,220,0,${pulse*0.5})`;
+    ctx.lineWidth=2; ctx.setLineDash([12,8]);
+    ctx.beginPath(); ctx.moveTo(ball.pos.x,ball.pos.y); ctx.lineTo(gx,targetY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Power bar (drawn in world space near ball)
+    if(pk.phase==='charging'){
+      const bx=ball.pos.x-60, by=ball.pos.y+36;
+      const bw=120, bh=14;
+      ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(bx,by,bw,bh);
+      const pct=pk.power/100;
+      ctx.fillStyle=pct<0.5?'#00cc44':pct<0.8?'#ffcc00':'#ff3300';
+      ctx.fillRect(bx,by,bw*pct,bh);
+      ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,bh);
+      ctx.fillStyle='#fff'; ctx.font='bold 11px Trebuchet MS';
+      ctx.textAlign='center'; ctx.fillText('POWER',bx+bw/2,by-5);
+    }
+  }
+
+  // ── Show result text in world space ──
+  if(pk.phase==='result'){
+    const col=pk.shotResult==='goal'?'#00ff66':pk.shotResult==='saved'?'#ff8800':'#ff4444';
+    const text=pk.shotResult==='goal'?'GOAL!':pk.shotResult==='saved'?'SAVED!':'MISSED!';
     ctx.save();
-    ctx.translate(goalX-200, WORLD_H/2);
-    ctx.scale(scale,scale);
-    ctx.fillStyle=`rgba(255,220,0,${alpha})`;
-    ctx.font=`bold 120px Impact`;
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillText(pk.countdown,0,0);
+    ctx.font='bold 100px Impact';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const alpha=Math.min(1,pk.resultTimer/30);
+    ctx.fillStyle=col.replace(')',`,${alpha})`).replace('rgb','rgba').replace('##','rgba(').replace('#00ff66',`rgba(0,255,102,${alpha})`).replace('#ff8800',`rgba(255,136,0,${alpha})`).replace('#ff4444',`rgba(255,68,68,${alpha})`);
+    // simpler:
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle=col;
+    ctx.fillText(text, gx-280, WORLD_H/2);
+    ctx.globalAlpha=1;
     ctx.restore();
   }
 }
@@ -1918,11 +1884,8 @@ function updateCamera(){
   const vw=camera.w/ZOOM, vh=camera.h/ZOOM;
   let tx, ty;
   if(gameState==='pk'){
-    tx=pkState.pkCameraTarget.x - (vw-canvas.width/ZOOM)/2;
-    ty=pkState.pkCameraTarget.y - (vh-canvas.height/ZOOM)/2;
-    // For PK, center on the goal
-    const goalX=FIELD.x+FIELD.w;
-    tx=goalX - vw*0.6;
+    const goalX=PK_GOAL_X;
+    tx=goalX - vw*0.62;
     ty=WORLD_H/2 - vh/2;
   }else{
     tx=ball.pos.x - vw/2;
@@ -2063,10 +2026,8 @@ function gameLoop(timestamp){
       resetTimer--; if(resetTimer<=0&&matchStage!=='Penalties') resetKickoff();
     }else if(gameState==='pk'){
       updatePKShooterMechanics();
-      players.forEach(p=>{
-        if(pkState.phase!=='ball_traveling'&&pkState.phase!=='result') p.update();
-      });
-      // Ball is manually moved in ball_traveling phase
+      // During ball_flying use normal physics; other phases ball is held by striker
+      if(pkState.phase==='ball_flying') ball.update();
     }else if(gameState==='tutorial'){
       const tp=players.find(p=>p.team===0&&!p.isTutDummy);
       if(tp) tp.isActive=true;
